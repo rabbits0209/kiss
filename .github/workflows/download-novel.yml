@@ -31,7 +31,8 @@ jobs:
       
     - name: 解压源码包（二重加密）
       env:
-        ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
+        OUTER_ZIP_PASSWORD: ${{ secrets.OUTER_ZIP_PASSWORD }}
+        INNER_ZIP_PASSWORD: ${{ secrets.INNER_ZIP_PASSWORD }}
       run: |
         echo "正在解压二重加密源码包..."
         if [ -f "xyz.zip" ]; then
@@ -40,9 +41,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y unzip
           
-          # 第一层解压
+          # 第一层解压（使用外层密码）
           echo "开始第一层解压..."
-          unzip -P "$ZIP_PASSWORD" xyz.zip
+          unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip
           echo "第一层解压完成"
           ls -la
           
@@ -50,7 +51,7 @@ jobs:
           if [ -f "tutu.zip" ]; then
             echo "找到内层源码包 tutu.zip"
             echo "开始第二层解压..."
-            unzip -P "$ZIP_PASSWORD" tutu.zip
+            unzip -P "$INNER_ZIP_PASSWORD" tutu.zip
             echo "第二层解压完成"
             ls -la
           else

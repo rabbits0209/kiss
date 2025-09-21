@@ -24,7 +24,8 @@ jobs:
 
       - name: Extract source code (Double encrypted)
         env:
-          ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
+          OUTER_ZIP_PASSWORD: ${{ secrets.OUTER_ZIP_PASSWORD }}
+          INNER_ZIP_PASSWORD: ${{ secrets.INNER_ZIP_PASSWORD }}
         run: |
           echo "Extracting double encrypted source code package..."
           if [ -f "xyz.zip" ]; then
@@ -33,9 +34,9 @@ jobs:
             sudo apt-get update
             sudo apt-get install -y unzip
             
-            # First layer extraction
+            # First layer extraction (using outer password)
             echo "Starting first layer extraction..."
-            unzip -P "$ZIP_PASSWORD" xyz.zip
+            unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip
             echo "First layer extraction completed"
             ls -la
             
@@ -43,7 +44,7 @@ jobs:
             if [ -f "tutu.zip" ]; then
               echo "Found inner source package tutu.zip"
               echo "Starting second layer extraction..."
-              unzip -P "$ZIP_PASSWORD" tutu.zip
+              unzip -P "$INNER_ZIP_PASSWORD" tutu.zip
               echo "Second layer extraction completed"
               ls -la
             else
