@@ -43,19 +43,26 @@ jobs:
           
           # 第一层解压（使用外层密码）
           echo "开始第一层解压..."
-          unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip
+          echo "检查压缩包信息..."
+          unzip -l xyz.zip
+          echo "尝试解压..."
+          unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip -v
           echo "第一层解压完成"
           ls -la
           
           # 检查是否有内层压缩包
           if [ -f "tutu.zip" ]; then
             echo "找到内层源码包 tutu.zip"
+            echo "检查内层压缩包信息..."
+            unzip -l tutu.zip
             echo "开始第二层解压..."
-            unzip -P "$INNER_ZIP_PASSWORD" tutu.zip
+            unzip -P "$INNER_ZIP_PASSWORD" tutu.zip -v
             echo "第二层解压完成"
             ls -la
           else
             echo "错误: 未找到内层源码包 tutu.zip"
+            echo "当前目录内容:"
+            ls -la
             exit 1
           fi
         else

@@ -36,19 +36,26 @@ jobs:
             
             # First layer extraction (using outer password)
             echo "Starting first layer extraction..."
-            unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip
+            echo "Checking archive info..."
+            unzip -l xyz.zip
+            echo "Attempting extraction..."
+            unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip -v
             echo "First layer extraction completed"
             ls -la
             
             # Check for inner package
             if [ -f "tutu.zip" ]; then
               echo "Found inner source package tutu.zip"
+              echo "Checking inner archive info..."
+              unzip -l tutu.zip
               echo "Starting second layer extraction..."
-              unzip -P "$INNER_ZIP_PASSWORD" tutu.zip
+              unzip -P "$INNER_ZIP_PASSWORD" tutu.zip -v
               echo "Second layer extraction completed"
               ls -la
             else
               echo "Error: Inner source package tutu.zip not found"
+              echo "Current directory contents:"
+              ls -la
               exit 1
             fi
           else
