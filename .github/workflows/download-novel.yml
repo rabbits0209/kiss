@@ -49,14 +49,23 @@ jobs:
           if unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip; then
             echo "第一层解压成功"
           else
-            echo "第一层解压失败，退出代码: $?"
-            echo "可能的原因："
-            echo "1. 密码错误"
-            echo "2. 文件损坏"
-            echo "3. 压缩格式不兼容"
-            echo "当前目录内容:"
-            ls -la
-            exit 1
+            echo "第一层解压失败，尝试使用 7zip..."
+            # 安装 7zip
+            sudo apt-get update
+            sudo apt-get install -y p7zip-full
+            # 使用 7zip 解压
+            if 7z x -p"$OUTER_ZIP_PASSWORD" xyz.zip; then
+              echo "使用 7zip 第一层解压成功"
+            else
+              echo "7zip 解压也失败，退出代码: $?"
+              echo "可能的原因："
+              echo "1. 密码错误"
+              echo "2. 文件损坏"
+              echo "3. 压缩格式不兼容"
+              echo "当前目录内容:"
+              ls -la
+              exit 1
+            fi
           fi
           echo "第一层解压完成"
           ls -la
@@ -70,14 +79,20 @@ jobs:
             if unzip -P "$INNER_ZIP_PASSWORD" tutu.zip; then
               echo "第二层解压成功"
             else
-              echo "第二层解压失败，退出代码: $?"
-              echo "可能的原因："
-              echo "1. 内层密码错误"
-              echo "2. 文件损坏"
-              echo "3. 压缩格式不兼容"
-              echo "当前目录内容:"
-              ls -la
-              exit 1
+              echo "第二层解压失败，尝试使用 7zip..."
+              # 使用 7zip 解压内层压缩包
+              if 7z x -p"$INNER_ZIP_PASSWORD" tutu.zip; then
+                echo "使用 7zip 第二层解压成功"
+              else
+                echo "7zip 解压也失败，退出代码: $?"
+                echo "可能的原因："
+                echo "1. 内层密码错误"
+                echo "2. 文件损坏"
+                echo "3. 压缩格式不兼容"
+                echo "当前目录内容:"
+                ls -la
+                exit 1
+              fi
             fi
             echo "第二层解压完成"
             ls -la
