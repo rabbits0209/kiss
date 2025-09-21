@@ -1,0 +1,81 @@
+name: Novel Downloader
+
+on:
+  workflow_dispatch:
+    inputs:
+      book_id:
+        description: "Book ID or URL"
+        required: true
+      format:
+        description: "Output format (epub/txt)"
+        required: false
+        default: epub
+      threads:
+        description: "Threads (1-16)"
+        required: false
+        default: '8'
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract source code (Double encrypted)
+        env:
+          ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
+        run: |
+          echo "Extracting double encrypted source code package..."
+          if [ -f "xyz.zip" ]; then
+            echo "Found outer source package xyz.zip"
+            # Install unzip tool
+            sudo apt-get update
+            sudo apt-get install -y unzip
+            
+            # First layer extraction
+            echo "Starting first layer extraction..."
+            unzip -P "$ZIP_PASSWORD" xyz.zip
+            echo "First layer extraction completed"
+            ls -la
+            
+            # Check for inner package
+            if [ -f "tutu.zip" ]; then
+              echo "Found inner source package tutu.zip"
+              echo "Starting second layer extraction..."
+              unzip -P "$ZIP_PASSWORD" tutu.zip
+              echo "Second layer extraction completed"
+              ls -la
+            else
+              echo "Error: Inner source package tutu.zip not found"
+              exit 1
+            fi
+          else
+            echo "Error: Outer source package xyz.zip not found"
+            exit 1
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run downloader
+        env:
+          CI: 'true'
+        run: |
+          mkdir -p download
+          python main.py --book-id "${{ github.event.inputs.book_id }}" --format "${{ github.event.inputs.format }}" --threads "${{ github.event.inputs.threads }}" --no-input
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Novel
+          path: download/
+          retention-days: 1
+

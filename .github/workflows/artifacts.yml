@@ -1,0 +1,29 @@
+name: Cleanup Artifacts Daily
+
+on:
+  schedule:
+    # 每天 UTC 时间 1:00 运行（北京时间 9:00）
+    - cron: '0 1 * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  cleanup-artifacts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    # 设置必要的权限
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Remove all artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          # 设置为0天，表示删除所有artifacts
+          age: '0 days'
+          
+      - name: Cleanup confirmation
+        run: |
+          echo "All artifacts have been cleaned up successfully!"
+          echo "Current date: $(date)"

@@ -1,0 +1,88 @@
+name: 下载小说并发送到Telegram
+
+on:
+  workflow_dispatch:
+    inputs:
+      book_id:
+        description: '书籍ID'
+        required: true
+        type: string
+      chat_id:
+        description: 'Telegram聊天ID'
+        required: true
+        type: string
+      message_id:
+        description: 'Telegram消息ID'
+        required: true
+        type: string
+      format:
+        description: '输出格式 (txt/epub)'
+        required: false
+        type: string
+        default: 'txt'
+
+jobs:
+  download-and-send:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 解压源码包（二重加密）
+      env:
+        ZIP_PASSWORD: ${{ secrets.ZIP_PASSWORD }}
+      run: |
+        echo "正在解压二重加密源码包..."
+        if [ -f "xyz.zip" ]; then
+          echo "找到外层源码包 xyz.zip"
+          # 安装 unzip 工具
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          
+          # 第一层解压
+          echo "开始第一层解压..."
+          unzip -P "$ZIP_PASSWORD" xyz.zip
+          echo "第一层解压完成"
+          ls -la
+          
+          # 检查是否有内层压缩包
+          if [ -f "tutu.zip" ]; then
+            echo "找到内层源码包 tutu.zip"
+            echo "开始第二层解压..."
+            unzip -P "$ZIP_PASSWORD" tutu.zip
+            echo "第二层解压完成"
+            ls -la
+          else
+            echo "错误: 未找到内层源码包 tutu.zip"
+            exit 1
+          fi
+        else
+          echo "错误: 未找到外层源码包 xyz.zip"
+          exit 1
+        fi
+      
+    - name: 设置Python环境
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: 安装依赖
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: 下载小说
+      env:
+        BOOK_ID: ${{ github.event.inputs.book_id }}
+        CHAT_ID: ${{ github.event.inputs.chat_id }}
+        MESSAGE_ID: ${{ github.event.inputs.message_id }}
+        FORMAT: ${{ github.event.inputs.format }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      run: |
+        echo "开始下载小说..."
+        echo "书籍ID: $BOOK_ID"
+        echo "聊天ID: $CHAT_ID"
+        echo "消息ID: $MESSAGE_ID"
+        echo "格式: $FORMAT"
+        python download_and_send.py --book-id "$BOOK_ID" --chat-id "$CHAT_ID" --message-id "$MESSAGE_ID" --format "$FORMAT"
