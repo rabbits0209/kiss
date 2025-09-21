@@ -39,7 +39,18 @@ jobs:
             echo "Checking archive info..."
             unzip -l xyz.zip
             echo "Attempting extraction..."
-            unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip -v
+            if unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip; then
+              echo "First layer extraction successful"
+            else
+              echo "First layer extraction failed, exit code: $?"
+              echo "Possible causes:"
+              echo "1. Wrong password"
+              echo "2. File corrupted"
+              echo "3. Incompatible compression format"
+              echo "Current directory contents:"
+              ls -la
+              exit 1
+            fi
             echo "First layer extraction completed"
             ls -la
             
@@ -49,7 +60,18 @@ jobs:
               echo "Checking inner archive info..."
               unzip -l tutu.zip
               echo "Starting second layer extraction..."
-              unzip -P "$INNER_ZIP_PASSWORD" tutu.zip -v
+              if unzip -P "$INNER_ZIP_PASSWORD" tutu.zip; then
+                echo "Second layer extraction successful"
+              else
+                echo "Second layer extraction failed, exit code: $?"
+                echo "Possible causes:"
+                echo "1. Wrong inner password"
+                echo "2. File corrupted"
+                echo "3. Incompatible compression format"
+                echo "Current directory contents:"
+                ls -la
+                exit 1
+              fi
               echo "Second layer extraction completed"
               ls -la
             else
