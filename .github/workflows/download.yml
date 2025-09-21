@@ -30,35 +30,26 @@ jobs:
           echo "Extracting double encrypted source code package..."
           if [ -f "xyz.zip" ]; then
             echo "Found outer source package xyz.zip"
-            # Install unzip tool
-            sudo apt-get update
-            sudo apt-get install -y unzip
             
             # First layer extraction (using outer password)
             echo "Starting first layer extraction..."
+            echo "Installing 7zip tool..."
+            sudo apt-get update
+            sudo apt-get install -y p7zip-full
             echo "Checking archive info..."
-            unzip -l xyz.zip
-            echo "Attempting extraction..."
-            if unzip -P "$OUTER_ZIP_PASSWORD" xyz.zip; then
+            7z l xyz.zip
+            echo "Extracting with 7zip..."
+            if 7z x -p"$OUTER_ZIP_PASSWORD" xyz.zip; then
               echo "First layer extraction successful"
             else
-              echo "First layer extraction failed, trying 7zip..."
-              # Install 7zip
-              sudo apt-get update
-              sudo apt-get install -y p7zip-full
-              # Use 7zip to extract
-              if 7z x -p"$OUTER_ZIP_PASSWORD" xyz.zip; then
-                echo "First layer extraction successful with 7zip"
-              else
-                echo "7zip extraction also failed, exit code: $?"
-                echo "Possible causes:"
-                echo "1. Wrong password"
-                echo "2. File corrupted"
-                echo "3. Incompatible compression format"
-                echo "Current directory contents:"
-                ls -la
-                exit 1
-              fi
+              echo "First layer extraction failed, exit code: $?"
+              echo "Possible causes:"
+              echo "1. Wrong password"
+              echo "2. File corrupted"
+              echo "3. Incompatible compression format"
+              echo "Current directory contents:"
+              ls -la
+              exit 1
             fi
             echo "First layer extraction completed"
             ls -la
@@ -67,25 +58,19 @@ jobs:
             if [ -f "tutu.zip" ]; then
               echo "Found inner source package tutu.zip"
               echo "Checking inner archive info..."
-              unzip -l tutu.zip
+              7z l tutu.zip
               echo "Starting second layer extraction..."
-              if unzip -P "$INNER_ZIP_PASSWORD" tutu.zip; then
+              if 7z x -p"$INNER_ZIP_PASSWORD" tutu.zip; then
                 echo "Second layer extraction successful"
               else
-                echo "Second layer extraction failed, trying 7zip..."
-                # Use 7zip to extract inner package
-                if 7z x -p"$INNER_ZIP_PASSWORD" tutu.zip; then
-                  echo "Second layer extraction successful with 7zip"
-                else
-                  echo "7zip extraction also failed, exit code: $?"
-                  echo "Possible causes:"
-                  echo "1. Wrong inner password"
-                  echo "2. File corrupted"
-                  echo "3. Incompatible compression format"
-                  echo "Current directory contents:"
-                  ls -la
-                  exit 1
-                fi
+                echo "Second layer extraction failed, exit code: $?"
+                echo "Possible causes:"
+                echo "1. Wrong inner password"
+                echo "2. File corrupted"
+                echo "3. Incompatible compression format"
+                echo "Current directory contents:"
+                ls -la
+                exit 1
               fi
               echo "Second layer extraction completed"
               ls -la
